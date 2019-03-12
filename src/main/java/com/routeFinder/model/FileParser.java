@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 public class FileParser {
 	public static final String DELIMITER = ",";
 	
-	public static final String DEFAULT_MAP_FILE = "city.txt";
+	public static final String DEFAULT_GRAPH_FILE = "city.txt";
 
 	@Autowired
-	private MapService mapService;
+	private Graph mapService;
 
 	public void parseFile(String fileName) throws FileNotFoundException {
 		try(Scanner mapScanner = new Scanner(getResourceFile(fileName))) {
@@ -33,7 +33,7 @@ public class FileParser {
 		}
 	}
 
-	public MapService getMapService() {
+	public Graph getMapService() {
 		return mapService;
 	}
 	

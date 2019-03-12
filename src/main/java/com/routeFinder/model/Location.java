@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
- * Represents a location which is a node within the "map" network
+ * Represents a location which is a node within the graph
  * @author ramesh
  *
  */

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.routeFinder.model.FileParser;
-import com.routeFinder.model.MapService;
+import com.routeFinder.model.Graph;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -22,11 +22,11 @@ import io.swagger.annotations.ApiParam;
 @RestController
 public class ServiceController {
 	private static Logger LOG = LoggerFactory.getLogger(ServiceController.class);
-	private static final String MAP_RESOURCE_NAME = "/map";
+	private static final String GRAPH_RESOURCE_NAME = "/graph";
 	private static final String CONNECTED_RESOURCE_NAME = "/connected";
 	
 	@Autowired
-	private MapService mapService;
+	private Graph graph;
 	
 	@Autowired
 	private FileParser fileParser;
@@ -35,8 +35,8 @@ public class ServiceController {
 		return fileParser;
 	}
 
-	public MapService getMapService() {
-		return mapService;
+	public Graph getGraph() {
+		return graph;
 	}
 
 	/**
@@ -44,11 +44,11 @@ public class ServiceController {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@ApiOperation(value="Initialize and remove any existing data")
-	@RequestMapping(value=MAP_RESOURCE_NAME + "/initialize", method=RequestMethod.PUT)
+	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/initialize", method=RequestMethod.PUT)
 	public ResponseEntity<?> initialize() {
 		try {
 			LOG.info("Initializing ServiceController");
-			getMapService().initialize();
+			getGraph().initialize();
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -56,12 +56,12 @@ public class ServiceController {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@ApiOperation(value="Set the default map")
-	@RequestMapping(value=MAP_RESOURCE_NAME + "/default", method=RequestMethod.PUT)
-	public ResponseEntity<?> setDefaultMap() {
+	@ApiOperation(value="Sets the default graph. A graph contains the known locations and connections (edges)")
+	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/default", method=RequestMethod.PUT)
+	public ResponseEntity<?> setDefaultGraph() {
 		try {
-			LOG.info("Initializing Default Map");
-			setMapFromFile(FileParser.DEFAULT_MAP_FILE);
+			LOG.info("Initializing Default Graph");
+			setGraphFromFile(FileParser.DEFAULT_GRAPH_FILE);
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -69,9 +69,9 @@ public class ServiceController {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@ApiOperation(value="Initialize map from a file on the classpath")
-	@RequestMapping(value=MAP_RESOURCE_NAME + "/file", method=RequestMethod.PUT)
-	public ResponseEntity<?> setMapFromFile(
+	@ApiOperation(value="Initialize graph from a file on the classpath")
+	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/file", method=RequestMethod.PUT)
+	public ResponseEntity<?> setGraphFromFile(
 		@ApiParam(
 				name = "fileName",
 				value = "name of a file on the classpath",
@@ -80,8 +80,8 @@ public class ServiceController {
 		try {
 			initialize();
 			getFileParser().parseFile(fileName);
-			LOG.info("Set map from file: " + fileName);
-			LOG.info("Map: " + getMapService().getLocationsAsString());
+			LOG.info("Set graph from file: " + fileName);
+			LOG.info("Graph: " + getGraph().getLocationsAsString());
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(FileNotFoundException e) {//expected error if the file doesn't exist when trying to load a file
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.NOT_FOUND);
@@ -108,7 +108,10 @@ public class ServiceController {
 			if(origin == null || origin.isEmpty() || destination == null || destination.isEmpty()) {
 				return new ResponseEntity("Origin and Destination are required", getDefaultHeaders(), HttpStatus.NOT_FOUND);
 			}
-			boolean found = getMapService().findRoute(origin, destination);
+			if(getGraph().isEmpty()) {//Convenience method to ensure a default graph is in place before you check if locations are connected.
+				setDefaultGraph();
+			}
+			boolean found = getGraph().findRoute(origin, destination);
 			String answer;
 			if(found) {
 				answer = "yes";
@@ -123,7 +126,7 @@ public class ServiceController {
 		}
 	}
 	
-	@ApiOperation(value="Add a road to the current map, connecting two cities. The cities will be added if they are not yet on the map", response=String.class)
+	@ApiOperation(value="Add an edge to the current graph, connecting two cities. The cities will be added if they are not yet on the graph", response=String.class)
 	@RequestMapping(value=CONNECTED_RESOURCE_NAME, method=RequestMethod.POST)
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ResponseEntity<?> addRoad(
@@ -141,7 +144,7 @@ public class ServiceController {
 			if(origin == null || origin.isEmpty() || destination == null || destination.isEmpty()) {
 				return new ResponseEntity("Origin and Destination are required", getDefaultHeaders(), HttpStatus.NOT_FOUND);
 			}
-			getMapService().addAdjacents(origin, destination);
+			getGraph().addAdjacents(origin, destination);
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
