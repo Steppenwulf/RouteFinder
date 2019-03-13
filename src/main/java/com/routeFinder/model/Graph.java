@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * Represents the graph of all the nodes currently defined in the application, where the nodes are locations (cities)
  * Graph is a singleton in this application, implemented as a Spring Component
- * Note: I would prefer to name this a business relatable name (i.e. map) rather than the mathematical name that represents
+ * Note: I would prefer this to be a business relatable name (i.e. map) rather than the mathematical name that represents
  * the type of collection used, but there is an obvious collision of Map with the java collection, so Graph seems better.
  * @author ramesh
  *

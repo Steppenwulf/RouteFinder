@@ -18,6 +18,8 @@ import com.routeFinder.model.Graph;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @RestController
 public class ServiceController {
@@ -40,10 +42,13 @@ public class ServiceController {
 	}
 
 	/**
-	 * Initializes to an empty map service - i.e. removes any existing data
+	 * Initializes to an empty graph - i.e. removes any existing data
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@ApiOperation(value="Initialize and remove any existing data")
+	@ApiOperation(value="Initialize graph and remove any existing data. Useful if you want to manually set data via 'POST connected' command")
+	@ApiResponses({
+		@ApiResponse(code=201, message="Created")
+	})
 	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/initialize", method=RequestMethod.PUT)
 	public ResponseEntity<?> initialize() {
 		try {
@@ -57,7 +62,7 @@ public class ServiceController {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@ApiOperation(value="Sets the default graph. A graph contains the known locations and connections (edges)")
+	@ApiOperation(value="Sets the default graph. A graph contains the known locations (nodes) and roads between them (edges)")
 	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/default", method=RequestMethod.PUT)
 	public ResponseEntity<?> setDefaultGraph() {
 		try {
@@ -71,7 +76,11 @@ public class ServiceController {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@ApiOperation(value="Initialize graph from a file on the classpath")
+	@ApiOperation(value="Initialize the graph from a file on the classpath")
+	@ApiResponses({
+		@ApiResponse(code=201, message="Created"),
+		@ApiResponse(code=404, message="Not Found")
+	})
 	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/file", method=RequestMethod.PUT)
 	public ResponseEntity<?> setGraphFromFile(
 		@ApiParam(
@@ -95,6 +104,10 @@ public class ServiceController {
 	}
 	
 	@ApiOperation(value="Check if 2 cities are connected", response=String.class)
+	@ApiResponses({
+		@ApiResponse(code=200, message="OK", response = String.class),
+		@ApiResponse(code=404, message="Not Found")
+	})
 	@RequestMapping(value=CONNECTED_RESOURCE_NAME, method=RequestMethod.GET)
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ResponseEntity<?> findRoute(
@@ -132,7 +145,11 @@ public class ServiceController {
 		}
 	}
 	
-	@ApiOperation(value="Add an edge to the current graph, connecting two cities. The cities will be added if they are not yet on the graph", response=String.class)
+	@ApiOperation(value="Add a road (edge) to the current graph, connecting two cities. The cities will be added if they are not yet on the graph", response=String.class)
+	@ApiResponses({
+		@ApiResponse(code=201, message="Created"),
+		@ApiResponse(code=404, message="Not Found")
+	})
 	@RequestMapping(value=CONNECTED_RESOURCE_NAME, method=RequestMethod.POST)
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ResponseEntity<?> addRoad(
