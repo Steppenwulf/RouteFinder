@@ -17,8 +17,11 @@ You can now go to: http://localhost:8080 The swagger is available here, and you 
 
 You can run the GET connected command directly in your browser.
 For instance each of the following 3 commands work using the default map. The first 2 should return "yes" and the last should return "no"
+
 http://localhost:8080/connected?origin=Boston&destination=Newark
+
 http://localhost:8080/connected?origin=Boston&destination=Philadelphia
+
 http://localhost:8080/connected?origin=Philadelphia&destination=Albany
 
 For further information on running, go to https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-running-your-application.html
