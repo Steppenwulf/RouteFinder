@@ -1,11 +1,15 @@
-package com.routeFinder.model;
+package com.routeFinder.io;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+
+import com.routeFinder.model.Graph;
 
 @Component
 public class FileParser {
@@ -16,10 +20,14 @@ public class FileParser {
 	@Autowired
 	private Graph mapService;
 
-	public void parseFile(String fileName) throws FileNotFoundException {
-		try(Scanner mapScanner = new Scanner(getResourceFile(fileName))) {
-			while(mapScanner.hasNextLine()) {
-				parseLine(mapScanner.nextLine());
+	public void parseFile(String fileName) throws IOException {
+		ClassPathResource classPathResource = new ClassPathResource(fileName);
+		try(InputStream iStream = classPathResource.getInputStream(); 
+			InputStreamReader iReader = new InputStreamReader(iStream);
+			BufferedReader bReader= new BufferedReader(iReader)) {
+			String line;
+			while((line = bReader.readLine()) != null) {
+				parseLine(line);
 			}
 		}
 	}
@@ -35,9 +43,5 @@ public class FileParser {
 
 	public Graph getMapService() {
 		return mapService;
-	}
-	
-	protected File getResourceFile(String fileName) {
-		return new File(getClass().getClassLoader().getResource(fileName).getFile());
 	}
 }

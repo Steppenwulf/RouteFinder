@@ -1,6 +1,6 @@
 package com.routeFinder.controller;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.routeFinder.model.FileParser;
+import com.routeFinder.io.FileParser;
 import com.routeFinder.model.Graph;
 
 import io.swagger.annotations.ApiOperation;
@@ -47,10 +47,11 @@ public class ServiceController {
 	@RequestMapping(value=GRAPH_RESOURCE_NAME + "/initialize", method=RequestMethod.PUT)
 	public ResponseEntity<?> initialize() {
 		try {
-			LOG.info("Initializing ServiceController");
+			LOG.info("Emptying graph and initializing");
 			getGraph().initialize();
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
+			LOG.error("Failed to initialize graph ", e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -64,6 +65,7 @@ public class ServiceController {
 			setGraphFromFile(FileParser.DEFAULT_GRAPH_FILE);
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
+			LOG.error("Failed to set default Graph", e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -83,9 +85,11 @@ public class ServiceController {
 			LOG.info("Set graph from file: " + fileName);
 			LOG.info("Graph: " + getGraph().getLocationsAsString());
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
-		} catch(FileNotFoundException e) {//expected error if the file doesn't exist when trying to load a file
+		} catch(IOException e) {//expected error if the file doesn't exist when trying to load a file
+			LOG.info("Could not find file: " + fileName, e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.NOT_FOUND);
 		} catch(Exception e) {
+			LOG.error("Failed to set Graph from File: " + fileName, e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -109,6 +113,7 @@ public class ServiceController {
 				return new ResponseEntity("Origin and Destination are required", getDefaultHeaders(), HttpStatus.NOT_FOUND);
 			}
 			if(getGraph().isEmpty()) {//Convenience method to ensure a default graph is in place before you check if locations are connected.
+				LOG.info("Graph is empty, so setting default graph");
 				setDefaultGraph();
 			}
 			boolean found = getGraph().findRoute(origin, destination);
@@ -122,6 +127,7 @@ public class ServiceController {
 			}
 			return new ResponseEntity(answer, getDefaultHeaders(), HttpStatus.OK);
 		} catch(Exception e) {
+			LOG.error("Failed when trying to find if locations are connected", e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -147,6 +153,7 @@ public class ServiceController {
 			getGraph().addAdjacents(origin, destination);
 			return new ResponseEntity(getDefaultHeaders(), HttpStatus.CREATED);
 		} catch(Exception e) {
+			LOG.error("Failed to add road between two locations", e);
 			return new ResponseEntity(e.getMessage(), getDefaultHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

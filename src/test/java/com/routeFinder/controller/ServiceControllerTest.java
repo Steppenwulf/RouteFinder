@@ -40,7 +40,7 @@ public class ServiceControllerTest {
 	
 	@Test
 	public void missingFileTest() {
-		ResponseEntity<?> answer = getController().setGraphFromFile("");
+		ResponseEntity<?> answer = getController().setGraphFromFile("e.e");
 		assert(answer.getStatusCode().equals(HttpStatus.NOT_FOUND));
 	}
 	
