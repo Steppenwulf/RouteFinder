@@ -8,7 +8,7 @@ I prefer business relevant names (location instead of node, road instead of edge
 
 #HOW TO RUN
 
-You can use download RouteFinder.jar located in the /compiled directory. Make sure you have a Java 8 JRE on the path and run the following comand in the directory containing the jar file:
+You can download RouteFinder.jar located in the /compiled directory. Make sure you have a Java 8 JRE on the path and run the following comand in the directory containing the jar file:
 java -jar compiled/RouteFinder.jar
 
 In the command prompt you should see that the jar has been loaded and is running. You can also see the logging as the application runs.
